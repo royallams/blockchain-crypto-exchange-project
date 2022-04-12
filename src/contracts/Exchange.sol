@@ -4,14 +4,14 @@
 
 
 //TODO:
-// [] Set the Feee account
-// [] Deposit Ether
-// [] Withdraw Ether
-// [] Deposit Tokens
-// [] Withdraw Tokens
-// [] Check Balances
-// [] Make Order 
-// [] Cancel Order
+// [x] Set the Feee account
+// [x] Deposit Ether
+// [x] Withdraw Ether
+// [x] Deposit Tokens
+// [x] Withdraw Tokens
+// [x] Check Balances
+// [x] Make Order 
+// [x] Cancel Order
 // [] Fil Order
 // []  Charge Fees
 
@@ -27,6 +27,12 @@ contract Exchange{
 	address constant ETHER = address(0);// jst to identify it is ether.
 
 	mapping(address => mapping(address => uint256)) public tokens;
+	mapping (uint256 => _Order) public orders;
+	mapping (uint256 => bool) public orderCancelled;
+
+	uint256 public orderCount;
+
+	
 
 constructor(address _feeAccount, uint256 _feePercent)public {
 	feeAccount = _feeAccount;
@@ -36,6 +42,39 @@ constructor(address _feeAccount, uint256 _feePercent)public {
 //Events
 event Deposit(address token, address user, uint256 amount, uint256 balance);
 event Withdraw(address token, address user, uint256 amount, uint256 balance);
+event Order(
+	uint id,
+	address user,
+	address tokenGet,
+	uint amountGet,
+	address tokenGive,
+	uint amountGive,
+	uint timestamp);
+
+event Cancel(
+	uint id,
+	address user,
+	address tokenGet,
+	uint amountGet,
+	address tokenGive,
+	uint amountGive,
+	uint timestamp);
+// a way to Model the order
+// a way to store the order 
+// add the order to storage
+
+
+struct _Order {
+	uint id;
+	address user;
+	address tokenGet;
+	uint amountGet;
+	address tokenGive;
+	uint amountGive;
+	uint timestamp;
+}
+
+
 
 
 
@@ -105,6 +144,34 @@ function balanceOf(address _token, address _user) public view returns(uint256){
 
 
 
+function makeOrder(address _tokenGet, uint256 _amountGet, address _tokenGive, uint256 _amountGive)public{
+	
+
+	orderCount= orderCount.add(1);
+	orders[orderCount] = _Order(orderCount, msg.sender, _tokenGet, _amountGet , _tokenGive, _amountGive, now);
+	emit Order(orderCount, msg.sender, _tokenGet, _amountGet, _tokenGive, _amountGive, now);
+}
+
+ 
+
+ function cancelOrder(uint256 _id)public{
+ 	// Must be my order
+ 	// Must be a valid order
+
+ 	_Order storage _order = orders[_id];// get the order
+ 	require(address(_order.user) == msg.sender);// is it the right owner
+ 	require(_order.id == _id);// the order must exist
+ 	orderCancelled[_id]= true;
+ 	emit  Cancel(
+	_order.id,
+	_order.user,
+	_order.tokenGet,
+	_order.amountGet,
+	_order.tokenGive,
+	_order.amountGive,
+	_order.timestamp);
+
+ }
 
 
 
