@@ -350,6 +350,30 @@ describe('Order Actions', async()=>{
 		})
 
 
+		it('updates filled orders', async()=>{
+			const orderFilled = await exchange.orderFilled(1)
+			orderFilled.should.equal(true)
+		})
+
+		it('emits a "Trade" event', async()=>{
+			const log = result.logs[0]
+			log.event.should.eq('Trade')
+			const event = log.args
+			event.id.toString().should.equal('1', 'id os correct')
+			event.user.should.equal(user1,'user is correct')
+			event.tokenGet.should.equal(token.address, 'tokenGet is Correct')
+			event.amountGet.toString().should.equal(tokens(1).toString(),'AmountGet is correct')
+			event.tokenGive.should.equal(ETHER_ADDRESS, 'tokenGive is Correct')
+			event.amountGive.toString().should.equal(ether(1).toString(),'amountGive is correct')
+			event.userFill.should.equal(user2, 'userFill is correct')
+			event.timestamp.toString().length.should.be.at.least(1, 'timestamp is present')
+
+		})
+
+
+	
+
+
 	})
 
 	describe('cancelling orders', async()=>{
@@ -397,6 +421,28 @@ describe('Order Actions', async()=>{
 			await exchange.cancelOrder('1',{from:user2}).should.be.rejectedWith(EVM_REVERT)
 		})
 	})
+
+		describe('failure', async()=>{
+			it('rejects invalid order ids', async()=>{
+				const invalidOrderId = 99999
+				await exchange.fillOrder(invalidOrderId, {from:user2}).should.be.rejectedWith(EVM_REVERT)
+			})
+
+			it('rejects already-filled orders', async()=>{
+				// Fill the order
+				await exchange.fillOrder('1', {from:user2}).should.be.fulfilled
+
+				// Try to fill it again
+				await exchange.fillOrder('1', {from: user2}).should.be.rejectedWith(EVM_REVERT)
+			})
+
+			it('rejects cancelled orders', async()=>{
+				await exchange.cancelOrder('1', {from: user1}).should.be.fulfilled
+				// Try to fill the order
+				await exchange.fillOrder('1', {from:user2}).should.be.rejectedWith(EVM_REVERT)
+
+			})
+		})
 
 	})
 	
