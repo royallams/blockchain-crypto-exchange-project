@@ -4,7 +4,7 @@ pragma solidity ^0.5.0;
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 
-//This is just a comment
+
 contract Token{
 	using SafeMath for uint;
 
